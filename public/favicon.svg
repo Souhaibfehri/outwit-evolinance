@@ -1,0 +1,63 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Orange gradient for fox body -->
+    <linearGradient id="foxBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff8c42" />
+      <stop offset="50%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    
+    <!-- Blue gradient for ears -->
+    <linearGradient id="foxBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    
+    <!-- Green for dollar sign -->
+    <linearGradient id="dollarGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#16a34a" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fox ears - pointed and alert like your logo -->
+  <path d="M10 12 L6 4 L14 10 Q12 12 10 12 Z" fill="url(#foxBlue)" />
+  <path d="M22 12 L26 4 L18 10 Q20 12 22 12 Z" fill="url(#foxBlue)" />
+  
+  <!-- Inner ear details -->
+  <path d="M9 9 L7 6 L11 8 Q10 9 9 9 Z" fill="#1e40af" />
+  <path d="M23 9 L25 6 L21 8 Q22 9 23 9 Z" fill="#1e40af" />
+  
+  <!-- Fox head - main shape -->
+  <circle cx="16" cy="18" r="10" fill="url(#foxBody)" />
+  
+  <!-- Fox snout - lower part like your logo -->
+  <ellipse cx="16" cy="22" rx="6" ry="4" fill="#ea580c" />
+  
+  <!-- Fox eyes - clever and alert -->
+  <ellipse cx="12" cy="16" rx="2" ry="2.5" fill="#1e40af" />
+  <ellipse cx="20" cy="16" rx="2" ry="2.5" fill="#1e40af" />
+  
+  <!-- Eye highlights -->
+  <circle cx="12.5" cy="15.5" r="0.8" fill="white" />
+  <circle cx="20.5" cy="15.5" r="0.8" fill="white" />
+  
+  <!-- Fox nose -->
+  <ellipse cx="16" cy="20" rx="1" ry="0.8" fill="#1e40af" />
+  
+  <!-- Dollar sign on top - representing financial growth -->
+  <g transform="translate(16, 2)">
+    <path d="M0 0 L0 8 M-2.5 2 Q0 1 2.5 2 Q0 3 -2.5 4 Q0 5 2.5 6" 
+          stroke="url(#dollarGreen)" 
+          stroke-width="1.2" 
+          fill="none" 
+          stroke-linecap="round" />
+    <!-- Dollar sign glow -->
+    <path d="M0 0 L0 8 M-2.5 2 Q0 1 2.5 2 Q0 3 -2.5 4 Q0 5 2.5 6" 
+          stroke="#22c55e" 
+          stroke-width="0.6" 
+          fill="none" 
+          stroke-linecap="round" 
+          opacity="0.8" />
+  </g>
+</svg>

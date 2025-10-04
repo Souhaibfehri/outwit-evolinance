@@ -1,0 +1,29 @@
+# 🔑 COPY THESE TO VERCEL ENVIRONMENT VARIABLES
+# Vercel Dashboard → Settings → Environment Variables
+
+# ===== SUPABASE (REQUIRED) =====
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# ===== DATABASE (REQUIRED) =====
+DATABASE_URL=postgresql://postgres:[password]@db.your-project-id.supabase.co:5432/postgres
+DIRECT_URL=postgresql://postgres:[password]@db.your-project-id.supabase.co:5432/postgres
+
+# ===== AUTHENTICATION (REQUIRED) =====
+NEXTAUTH_SECRET=your_32_character_random_secret
+NEXTAUTH_URL=https://your-app-name.vercel.app
+
+# ===== OPTIONAL =====
+OPENAI_API_KEY=sk-your_openai_key_here
+NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
+NODE_ENV=production
+
+# 📋 INSTRUCTIONS:
+# 1. Get Supabase values from: https://supabase.com → Your Project → Settings → API
+# 2. Get Database URL from: Settings → Database → Connection string
+# 3. Generate NextAuth secret: https://generate-secret.vercel.app/32
+# 4. Replace "your-app-name" with your actual Vercel app name
+# 5. Add each variable in Vercel Dashboard
+# 6. Set Environment to: Production, Preview, Development
+# 7. Redeploy your app
