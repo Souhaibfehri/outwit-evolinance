@@ -8,20 +8,46 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // MINIMAL 494 FIX: Only clear cookies if they're really large (>6KB)
+  // PROPER 494 FIX: Monitor total header size and manage cookies
   try {
     const headers = request.headers
     const cookieHeader = headers.get('cookie')
     
-    // Only intervene if cookies are very large (>6KB)
-    if (cookieHeader && cookieHeader.length > 6000) {
-      console.log(`Very large cookie header detected: ${cookieHeader.length} bytes - clearing auth cookies`)
+    // Calculate total header size
+    let totalHeaderSize = 0
+    for (const [name, value] of headers.entries()) {
+      totalHeaderSize += name.length + value.length
+    }
+    
+    // If total headers exceed 24KB (leaving 8KB buffer), clear largest cookies
+    if (totalHeaderSize > 24000) {
+      console.log(`Large headers detected: ${totalHeaderSize} bytes - clearing largest cookies`)
       
       const response = NextResponse.next()
 
-      // Clear only the largest auth cookies
+      // Clear the largest cookies that are most likely to cause issues
       const cookiesToClear = [
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token'
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token'
+      ]
+
+      cookiesToClear.forEach((name) => {
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.vercel.app' })
+      })
+
+      response.headers.set('X-Headers-Cleared', 'true')
+      return response
+    }
+    
+    // If just cookies are large (>8KB), clear only the biggest ones
+    if (cookieHeader && cookieHeader.length > 8000) {
+      console.log(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`)
+      
+      const response = NextResponse.next()
+
+      // Clear only the largest cookies
+      const cookiesToClear = [
+        'sb-access-token', 'sb-refresh-token'
       ]
 
       cookiesToClear.forEach((name) => {

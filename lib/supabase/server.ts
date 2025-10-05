@@ -14,7 +14,22 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options)
+          // Prevent large cookies that could cause 494 errors
+          if (value && value.length > 4000) {
+            console.warn(`Blocking large cookie: ${name} (${value.length} bytes) - exceeds 4KB limit`)
+            return
+          }
+          
+          // Set cookies with reasonable limits
+          const safeOptions = {
+            ...options,
+            maxAge: Math.min(options?.maxAge || 3600, 3600), // Max 1 hour
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax' as const,
+            httpOnly: true,
+            path: '/'
+          }
+          cookieStore.set(name, value, safeOptions)
         })
       },
     },
