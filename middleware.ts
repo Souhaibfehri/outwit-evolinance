@@ -8,24 +8,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Fix HTTP 431/494 - Handle large headers/cookies
+  // PERMANENT FIX: Always clear ALL cookies to prevent 494 errors
   try {
-    // Check header size and clean up if too large
     const headers = request.headers
     const cookieHeader = headers.get('cookie')
     
-    // More aggressive threshold - clear cookies if over 2KB
-    if (cookieHeader && cookieHeader.length > 2000) {
-      console.log(`Large cookie header detected: ${cookieHeader.length} bytes`)
+    // If ANY cookies exist, clear them all immediately
+    if (cookieHeader && cookieHeader.length > 0) {
+      console.log(`Clearing ${cookieHeader.length} bytes of cookies to prevent 494 error`)
       
-      // Build a response that aggressively clears cookies to reduce header size
       const response = NextResponse.next()
 
+      // Clear ALL possible cookies with multiple variations
+      const allCookies = cookieHeader.split(';').map(c => c.trim().split('=')[0]).filter(Boolean)
       const cookiesToClear = [
+        ...allCookies,
         'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
         'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
         'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
-        'app-session', 'supabase', 'supabase-auth'
+        'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
       ]
 
       // Clear cookies with multiple variations
@@ -33,14 +34,13 @@ export async function middleware(request: NextRequest) {
         response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
         response.cookies.set({ name, value: '', path: '/', maxAge: 0, secure: true })
         response.cookies.set({ name, value: '', path: '/', maxAge: 0, sameSite: 'strict' })
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0, httpOnly: true })
       })
 
       // Set aggressive cache headers
       response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
       response.headers.set('Pragma', 'no-cache')
       response.headers.set('Expires', '0')
-      
-      // Add a header to indicate cookies were cleared
       response.headers.set('X-Cookies-Cleared', 'true')
 
       return response
