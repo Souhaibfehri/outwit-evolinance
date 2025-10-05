@@ -8,29 +8,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Simple fix: Only clear cookies if they're too large
+  // MINIMAL 494 FIX: Only clear cookies if they're really large (>6KB)
   try {
     const headers = request.headers
     const cookieHeader = headers.get('cookie')
     
-    // Only intervene if cookies are actually large (>4KB)
-    if (cookieHeader && cookieHeader.length > 4000) {
-      console.log(`Large cookie header detected: ${cookieHeader.length} bytes - clearing`)
+    // Only intervene if cookies are very large (>6KB)
+    if (cookieHeader && cookieHeader.length > 6000) {
+      console.log(`Very large cookie header detected: ${cookieHeader.length} bytes - clearing auth cookies`)
       
       const response = NextResponse.next()
 
-      // Clear only problematic cookies
+      // Clear only the largest auth cookies
       const cookiesToClear = [
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
-        'vercel-auth-session', 'next-auth.session-token'
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token'
       ]
 
       cookiesToClear.forEach((name) => {
         response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
       })
-
-      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-      response.headers.set('X-Cookies-Cleared', 'true')
 
       return response
     }
