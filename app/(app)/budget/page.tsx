@@ -1,97 +1,24 @@
-import { redirect } from 'next/navigation'
-import { getUserAndEnsure } from '@/lib/ensureUser'
-import { BudgetPageClient } from './budget-client'
-import {
-  calcMonthSummary,
-  type CategoryBudgetItem,
-  type MonthSummary
-} from '@/lib/budget/calcs'
-import { calculateRTA, validateBudgetAllocation } from '@/lib/budget-math'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { SimpleBudget } from './simple-budget'
 
-// Force dynamic rendering for authenticated route
 export const dynamic = 'force-dynamic'
 
-// Helper functions
-function getCurrentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
-
-export default async function BudgetPage() {
-  // Get user data server-side
-  const user = await getUserAndEnsure()
-  if (!user) {
-    redirect('/onboarding')
-  }
-
-  const currentMonth = getCurrentMonth()
-  const metadata = user.user_metadata || {}
-  
-  const categoryGroups = metadata.category_groups || []
-  const categories = metadata.categories || []
-  const budgetItems = metadata.budget_items || []
-  const budgetMonths = metadata.budget_months || []
-  const recurringIncome = metadata.recurring_income || []
-  const oneOffIncome = metadata.one_off_income || []
-
-  // Find or create current budget month
-  let budgetMonth = budgetMonths.find((bm: any) => bm.month === currentMonth)
-  if (!budgetMonth) {
-    budgetMonth = {
-      id: Date.now().toString(),
-      userId: user.id,
-      month: currentMonth,
-      expectedIncome: 0,
-      allowOverAssign: false
-    }
-  }
-
-  // Transform categories to budget items format
-  const categoryBudgetItems: CategoryBudgetItem[] = categories.map((category: any) => {
-    const budgetItem = budgetItems.find(
-      (bi: any) => bi.categoryId === category.id && bi.month === currentMonth
-    )
-    
-    const group = categoryGroups.find((g: any) => g.id === category.groupId)
-    
-    return {
-      categoryId: category.id,
-      categoryName: category.name,
-      assigned: budgetItem ? parseFloat(budgetItem.assigned) : 0,
-      spent: budgetItem ? parseFloat(budgetItem.spent) : 0,
-      leftoverFromPrev: budgetItem ? parseFloat(budgetItem.leftoverFromPrev) : 0,
-      left: (budgetItem ? parseFloat(budgetItem.assigned) : 0) - (budgetItem ? parseFloat(budgetItem.spent) : 0),
-      priority: category.priority || 3,
-      rollover: category.rollover || false,
-      groupId: category.groupId,
-      groupName: group?.name || 'Uncategorized'
-    }
-  })
-
-  // Calculate month summary
-  const monthSummary = calcMonthSummary({
-    month: currentMonth,
-    userId: user.id,
-    expectedIncome: budgetMonth.expectedIncome || 0,
-    allowOverAssign: budgetMonth.allowOverAssign || false,
-    categories: categoryBudgetItems,
-    recurringIncome,
-    oneOffIncome
-  })
-
-  const initialData = {
-    currentMonth,
-    monthSummary,
-    categoryGroups,
-    categories,
-    budgetItems,
-    budgetMonth
-  }
-
+export default function BudgetPage() {
   return (
-    <ErrorBoundary>
-      <BudgetPageClient initialData={initialData} />
-    </ErrorBoundary>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            Budget
+          </h1>
+          <p className="text-lg text-muted-foreground mt-2">
+            Zero-based budgeting made simple
+          </p>
+        </div>
+      </div>
+
+      {/* Budget Content */}
+      <SimpleBudget />
+    </div>
   )
 }

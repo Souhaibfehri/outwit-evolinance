@@ -1,4 +1,5 @@
-import { SimpleForecast } from './simple-forecast'
+import { DetailedForecast } from './detailed-forecast'
+import { Card, CardContent } from '@/components/ui/card'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export default function ForecastPage() {
       </div>
 
       {/* Forecast Content */}
-      <SimpleForecast />
+      <DetailedForecast />
     </div>
   )
 }
