@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Fix HTTP 431 - Handle large headers/cookies
+  // Fix HTTP 431/494 - Handle large headers/cookies
   try {
     // Check header size and clean up if too large
     const headers = request.headers
@@ -11,25 +11,23 @@ export async function middleware(request: NextRequest) {
     
     // If cookies are too large, clean them up
     if (cookieHeader && cookieHeader.length > 4000) {
-      console.log('Large cookie detected, cleaning up...')
-      
-      // Create response with cleaned cookies
+      // Build a response that aggressively clears cookies to reduce header size
       const response = NextResponse.next()
-      
-      // Clear problematic cookies
+
       const cookiesToClear = [
-        'sb-access-token',
-        'sb-refresh-token', 
-        'supabase.auth.token',
-        'supabase-auth-token',
-        'vercel-auth-session',
-        'next-auth.session-token'
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
+        'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token'
       ]
-      
-      cookiesToClear.forEach(cookieName => {
-        response.cookies.delete(cookieName)
+
+      cookiesToClear.forEach((name) => {
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
       })
-      
+
+      // Also instruct client/proxies not to cache
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+
       return response
     }
   } catch (error) {
