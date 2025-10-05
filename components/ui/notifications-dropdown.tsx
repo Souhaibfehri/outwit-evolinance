@@ -15,17 +15,9 @@ import {
 import { 
   Bell,
   BellRing,
-  CheckCircle,
-  AlertTriangle,
-  Info,
-  TrendingUp,
-  Calendar,
-  DollarSign,
-  X,
   ExternalLink
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { toast } from 'sonner'
+import { motion } from 'framer-motion'
 
 interface Notification {
   id: string
@@ -87,59 +79,8 @@ export function NotificationsDropdown() {
 
   const unreadCount = notifications.filter(n => !n.read).length
 
-  const getNotificationIcon = (type: Notification['type']) => {
-    switch (type) {
-      case 'budget_alert':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />
-      case 'bill_reminder':
-        return <Calendar className="h-4 w-4 text-yellow-500" />
-      case 'goal_achievement':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'large_transaction':
-        return <DollarSign className="h-4 w-4 text-blue-500" />
-      default:
-        return <Info className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getPriorityColor = (priority: Notification['priority']) => {
-    switch (priority) {
-      case 'high': return 'bg-red-500'
-      case 'medium': return 'bg-yellow-500'
-      case 'low': return 'bg-green-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  const formatTime = (date: Date) => {
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-    
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
-      return `${diffInMinutes}m ago`
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24)
-      return `${diffInDays}d ago`
-    }
-  }
-
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ))
-  }
-
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })))
-    toast.success('All notifications marked as read')
-  }
-
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id))
-    toast.success('Notification deleted')
   }
 
   return (
@@ -199,95 +140,24 @@ export function NotificationsDropdown() {
         
         <DropdownMenuSeparator />
 
-        {notifications.length === 0 ? (
-          <div className="p-6 text-center">
-            <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              No notifications yet
-            </p>
-          </div>
-        ) : (
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.slice(0, 10).map((notification, index) => (
-              <motion.div
-                key={notification.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700/50 last:border-b-0 ${
-                  !notification.read ? 'bg-orange-50/50 dark:bg-orange-950/20' : ''
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${getPriorityColor(notification.priority)}`} />
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        {getNotificationIcon(notification.type)}
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {notification.title}
-                        </p>
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {notification.actionUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              window.location.href = notification.actionUrl!
-                              markAsRead(notification.id)
-                              setIsOpen(false)
-                            }}
-                            className="h-6 w-6 p-0"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteNotification(notification.id)}
-                          className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 pr-8">
-                      {notification.message}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
-                      {formatTime(notification.timestamp)}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {notifications.length > 10 && (
-          <>
-            <DropdownMenuSeparator />
-            <div className="p-3 text-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  window.location.href = '/notifications'
-                  setIsOpen(false)
-                }}
-                className="text-orange-600 hover:text-orange-700"
-              >
-                View All {notifications.length} Notifications
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </Button>
-            </div>
-          </>
-        )}
+        <div className="p-6 text-center">
+          <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {unreadCount > 0 ? `You have ${unreadCount} unread notifications` : 'No new notifications'}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.location.href = '/notifications'
+              setIsOpen(false)
+            }}
+            className="text-orange-600 hover:text-orange-700 border-orange-200 hover:border-orange-300"
+          >
+            See All Notifications
+            <ExternalLink className="h-3 w-3 ml-1" />
+          </Button>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )
