@@ -13,13 +13,31 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          // NUCLEAR OPTION: Never return any cookies
-          return []
+          return cookieStore.getAll()
         },
         setAll(cookiesToSet) {
-          // NUCLEAR OPTION: Block ALL cookie setting permanently
-          console.log(`NUCLEAR: Blocking ${cookiesToSet.length} server-side cookies permanently`)
-          return // Never set any cookies
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Only block large cookies to prevent 494 errors
+              if (value && value.length > 2000) {
+                console.warn(`Blocking large cookie: ${name} (${value.length} bytes)`)
+                return
+              }
+              
+              // Set cookies with reasonable limits
+              const safeOptions = {
+                ...options,
+                maxAge: Math.min(options?.maxAge || 3600, 3600), // Max 1 hour
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax' as const,
+                httpOnly: true,
+                path: '/'
+              }
+              cookieStore.set(name, value, safeOptions)
+            })
+          } catch (error) {
+            console.error('Cookie setting error:', error)
+          }
         },
       },
     }

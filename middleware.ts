@@ -8,39 +8,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // NUCLEAR OPTION: Always return a response that clears ALL cookies
-  const response = NextResponse.next()
+  // Simple fix: Only clear cookies if they're too large
+  try {
+    const headers = request.headers
+    const cookieHeader = headers.get('cookie')
+    
+    // Only intervene if cookies are actually large (>4KB)
+    if (cookieHeader && cookieHeader.length > 4000) {
+      console.log(`Large cookie header detected: ${cookieHeader.length} bytes - clearing`)
+      
+      const response = NextResponse.next()
 
-  // Clear ALL possible cookies with maximum aggression
-  const cookiesToClear = [
-    'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
-    'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
-    'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
-    'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth',
-    'supabase-auth-token', 'supabase.auth.token', 'sb-access-token', 'sb-refresh-token',
-    'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
-    'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
-    'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
-  ]
+      // Clear only problematic cookies
+      const cookiesToClear = [
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
+        'vercel-auth-session', 'next-auth.session-token'
+      ]
 
-  // Clear cookies with multiple variations - NUCLEAR OPTION
-  cookiesToClear.forEach((name) => {
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0, secure: true })
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0, sameSite: 'strict' })
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0, httpOnly: true })
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.vercel.app' })
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.outwit-evolinance.vercel.app' })
-  })
+      cookiesToClear.forEach((name) => {
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
+      })
 
-  // Set aggressive cache headers
-  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-  response.headers.set('Pragma', 'no-cache')
-  response.headers.set('Expires', '0')
-  response.headers.set('X-Cookies-Cleared', 'true')
-  response.headers.set('X-Header-Size-Fix', 'applied')
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('X-Cookies-Cleared', 'true')
 
-  return response
+      return response
+    }
+  } catch (error) {
+    console.log('Header processing error:', error)
+  }
 
   // Always allow these paths without any checks
   const publicPaths = [

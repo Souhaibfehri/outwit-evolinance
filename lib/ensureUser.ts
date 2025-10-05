@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { shouldBypassAuth, getMockUser } from '@/lib/auth-bypass'
 
 export interface User {
   id: string
@@ -16,23 +15,6 @@ export interface User {
 
 export async function ensureUser(): Promise<User | null> {
   try {
-    // PERMANENT FIX: Bypass auth in development to prevent 494 errors
-    if (shouldBypassAuth()) {
-      const mockUser = getMockUser()
-      return {
-        id: mockUser.id,
-        email: mockUser.email,
-        name: mockUser.user_metadata.display_name,
-        user_metadata: mockUser.user_metadata,
-        profile: {
-          onboardingDone: true,
-          onboardingStep: 5,
-          currency: 'USD',
-          paySchedule: 'MONTHLY'
-        }
-      }
-    }
-
     const supabase = await createClient()
     const { data: { user: authUser } } = await supabase.auth.getUser()
     if (!authUser?.email) return null
