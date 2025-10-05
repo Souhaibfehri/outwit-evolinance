@@ -67,6 +67,13 @@ model User {
   incomeSources       IncomeSource[]        @relation("UserIncome")
   investmentAccounts  InvestmentAccountV2[] @relation("UserInvestments")
   allocationTemplates AllocationTemplate[]  @relation("UserTemplates")
+  
+  // Forecast system relations
+  forecastOverrides   ForecastOverride[]    @relation("UserForecastOverrides")
+  forecastSnapshots   ForecastSnapshot[]    @relation("UserForecastSnapshots")
+  
+  // Notifications system relations
+  notifications       Notification[]        @relation("UserNotifications")
 }
 
 model UserProfile {
@@ -163,6 +170,14 @@ model Category {
   priority  Int            @default(3) // 1-5
   sortOrder Int            @default(0)
   archived  Boolean        @default(false)
+  
+  // YNAB-style targets system
+  targetType        String?  // 'refill_up_to', 'set_aside_another', 'have_balance_by', 'none'
+  targetAmount      Decimal? @db.Decimal(12, 2) // Target amount
+  targetDate        DateTime? // For 'have_balance_by' targets
+  targetCadence     String?  // 'monthly', 'yearly', 'custom'
+  snoozedUntil      DateTime? // Snooze target until this date
+  targetEnabled     Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -848,5 +863,72 @@ model AllocationTemplate {
 
   createdAt DateTime @default(now())
 
+  @@index([userId])
+}
+
+// ===================================================
+// NOTIFICATIONS SYSTEM TABLES
+// ===================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      String   // 'bill_due_soon', 'overspend_today', 'income_unassigned', 'goal_milestone'
+  title     String
+  message   String
+  actionUrl String?  // Deep-link to relevant page/context
+  priority  String   @default("medium") // 'low', 'medium', 'high'
+  
+  seenAt      DateTime?
+  dismissedAt DateTime?
+  expiresAt   DateTime?
+  
+  // Context data for preventing duplicates
+  contextType String?  // 'bill_id', 'category_id', 'goal_id', etc.
+  contextId   String?  // The actual ID
+  contextDate String?  // Date for daily rules (YYYY-MM-DD)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, type, contextType, contextId, contextDate])
+  @@index([userId, seenAt])
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+// ===================================================
+// FORECAST SYSTEM TABLES
+// ===================================================
+
+model ForecastOverride {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation("UserForecastOverrides", fields: [userId], references: [id], onDelete: Cascade)
+  month       String  // YYYY-MM format
+  categoryId  String?  // null for income/RTA overrides
+  deltaAmount Decimal @db.Decimal(12, 2) // positive or negative adjustment
+  note        String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, month, categoryId])
+  @@index([userId, month])
+}
+
+model ForecastSnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserForecastSnapshots", fields: [userId], references: [id], onDelete: Cascade)
+  name      String   // "Base", "Optimistic", "Stress Test", etc.
+  baseMonth String   // YYYY-MM - the month this forecast was created from
+  dataJson  Json     // Complete forecast data including overrides
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
   @@index([userId])
 }

@@ -38,7 +38,8 @@ import {
   LogOut,
   Menu,
   User,
-  DollarSign
+  DollarSign,
+  Calendar
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ import {
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/budget', label: 'Budget', icon: Wallet },
+  { href: '/forecast', label: 'Forecast', icon: Calendar },
   { href: '/income', label: 'Income', icon: DollarSign },
   { href: '/transactions', label: 'Transactions', icon: CreditCard },
   { href: '/bills', label: 'Bills', icon: Receipt },

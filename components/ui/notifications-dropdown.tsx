@@ -3,11 +3,9 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -15,72 +13,90 @@ import {
 import { 
   Bell,
   BellRing,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  AlertTriangle,
+  TrendingDown,
+  DollarSign,
+  Target,
+  Info
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-
-interface Notification {
-  id: string
-  type: 'budget_alert' | 'bill_reminder' | 'goal_achievement' | 'large_transaction' | 'info'
-  title: string
-  message: string
-  timestamp: Date
-  read: boolean
-  priority: 'low' | 'medium' | 'high'
-  actionUrl?: string
-}
-
-const sampleNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'budget_alert',
-    title: 'Budget Alert',
-    message: "You've spent 95% of your Groceries budget for this month",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    read: false,
-    priority: 'high',
-    actionUrl: '/budget'
-  },
-  {
-    id: '2',
-    type: 'bill_reminder',
-    title: 'Bill Reminder',
-    message: 'Electric bill ($120) is due in 3 days',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-    read: false,
-    priority: 'medium',
-    actionUrl: '/bills'
-  },
-  {
-    id: '3',
-    type: 'goal_achievement',
-    title: 'Goal Achievement',
-    message: "Congratulations! You've reached your Emergency Fund goal",
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    read: true,
-    priority: 'low',
-    actionUrl: '/goals'
-  },
-  {
-    id: '4',
-    type: 'large_transaction',
-    title: 'Large Transaction',
-    message: 'Large expense detected: $500 at Target',
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
-    read: true,
-    priority: 'medium',
-    actionUrl: '/transactions'
-  }
-]
+import { toast } from 'sonner'
+import { NotificationData, getNotificationDisplayInfo } from '@/lib/notifications/engine'
 
 export function NotificationsDropdown() {
-  const [notifications, setNotifications] = useState<Notification[]>(sampleNotifications)
+  const [notifications, setNotifications] = useState<NotificationData[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications()
+    }
+  }, [isOpen])
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })))
+  const fetchNotifications = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/notifications')
+      const data = await response.json()
+
+      if (data.success) {
+        setNotifications(data.notifications)
+      } else {
+        console.error('Failed to load notifications:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const markAsSeen = async (notificationId: string) => {
+    try {
+      await fetch('/api/notifications/mark-seen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId })
+      })
+
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, seenAt: new Date().toISOString() } : n
+      ))
+    } catch (error) {
+      console.error('Error marking notification as seen:', error)
+    }
+  }
+
+  const markAllAsRead = async () => {
+    try {
+      await fetch('/api/notifications/mark-all-seen', {
+        method: 'POST'
+      })
+
+      setNotifications(prev => prev.map(n => ({ 
+        ...n, 
+        seenAt: n.seenAt || new Date().toISOString() 
+      })))
+      
+      toast.success('All notifications marked as read')
+    } catch (error) {
+      console.error('Error marking all as read:', error)
+      toast.error('Failed to mark all as read')
+    }
+  }
+
+  const unreadCount = notifications.filter(n => !n.seenAt).length
+
+  const getNotificationIcon = (type: NotificationData['type']) => {
+    const iconMap: Record<string, any> = {
+      Calendar, AlertTriangle, TrendingDown, DollarSign, Target, Info
+    }
+    
+    const displayInfo = getNotificationDisplayInfo({ type } as NotificationData)
+    return iconMap[displayInfo.icon] || Info
   }
 
   return (
