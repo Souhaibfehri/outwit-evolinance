@@ -183,7 +183,7 @@ export function MobileBudgetList({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={selectAll} className="text-xs">
+                <Button variant="outline" size="sm" onClick={() => selectAll(sortedItems)} className="text-xs">
                   All
                 </Button>
                 <Button variant="outline" size="sm" onClick={exitMultiSelectMode} className="text-xs">

@@ -7,6 +7,7 @@ import {
   type MonthSummary
 } from '@/lib/budget/calcs'
 import { calculateRTA, validateBudgetAllocation } from '@/lib/budget-math'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 
 // Force dynamic rendering for authenticated route
 export const dynamic = 'force-dynamic'
@@ -80,16 +81,17 @@ export default async function BudgetPage() {
   })
 
   const initialData = {
-    user,
     currentMonth,
+    monthSummary,
     categoryGroups,
     categories,
     budgetItems,
-    budgetMonth,
-    recurringIncome,
-    oneOffIncome,
-    monthSummary
+    budgetMonth
   }
 
-  return <BudgetPageClient initialData={initialData} />
+  return (
+    <ErrorBoundary>
+      <BudgetPageClient initialData={initialData} />
+    </ErrorBoundary>
+  )
 }

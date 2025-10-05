@@ -32,7 +32,7 @@ export function SwipeableItem({
 }: SwipeableItemProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isLongPressing, setIsLongPressing] = useState(false)
-  const longPressTimer = useRef<NodeJS.Timeout>()
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null)
   const controls = useAnimation()
 
   const handlePanStart = useCallback(() => {

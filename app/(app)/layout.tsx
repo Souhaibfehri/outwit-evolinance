@@ -9,7 +9,7 @@ import { FoxyProvider } from '@/components/foxy/foxy-provider'
 import { TutorialProvider } from '@/components/tutorials/tutorial-provider'
 import { BadgeShowcase } from '@/components/tutorials/badge-showcase'
 import { UserProfileMenu } from '@/components/ui/user-profile-menu'
-import { NotificationsDropdown } from '@/components/ui/notifications-dropdown'
+import { NotificationsDropdown } from '@/components/ui/notifications-dropdown-working'
 import { LogoutHandler } from '@/components/ui/logout-handler'
 import { HeaderSizeGuard } from '@/components/utils/header-size-guard'
 

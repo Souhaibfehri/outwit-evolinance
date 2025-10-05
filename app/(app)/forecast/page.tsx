@@ -1,6 +1,4 @@
-import { Suspense } from 'react'
-import { ForecastPageClient } from './forecast-client'
-import { Card, CardContent } from '@/components/ui/card'
+import { SimpleForecast } from './simple-forecast'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,15 +12,13 @@ export default function ForecastPage() {
             Forecast
           </h1>
           <p className="text-lg text-muted-foreground mt-2">
-            12-month predictive cashflow timeline with what-if scenarios
+            12-month financial forecast and projections
           </p>
         </div>
       </div>
 
       {/* Forecast Content */}
-      <Suspense fallback={<ForecastSkeleton />}>
-        <ForecastPageClient />
-      </Suspense>
+      <SimpleForecast />
     </div>
   )
 }

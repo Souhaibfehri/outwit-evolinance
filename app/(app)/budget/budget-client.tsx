@@ -163,12 +163,17 @@ export function BudgetPageClient({ initialData }: BudgetPageClientProps) {
         item.categoryId === category.id && item.month === data.currentMonth
       )
       
+      const assigned = budgetItem ? parseFloat(budgetItem.assigned) : 0
+      const spent = budgetItem ? parseFloat(budgetItem.spent) : 0
+      const leftoverFromPrev = budgetItem ? parseFloat(budgetItem.leftoverFromPrev) : 0
+      
       return {
         categoryId: category.id,
         categoryName: category.name,
-        assigned: budgetItem ? parseFloat(budgetItem.assigned) : 0,
-        spent: budgetItem ? parseFloat(budgetItem.spent) : 0,
-        leftoverFromPrev: budgetItem ? parseFloat(budgetItem.leftoverFromPrev) : 0,
+        assigned,
+        spent,
+        leftoverFromPrev,
+        left: assigned - spent,
         priority: category.priority || 3,
         rollover: category.rollover || false,
         groupId: category.groupId,

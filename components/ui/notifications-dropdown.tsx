@@ -156,24 +156,75 @@ export function NotificationsDropdown() {
         
         <DropdownMenuSeparator />
 
-        <div className="p-6 text-center">
-          <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            {unreadCount > 0 ? `You have ${unreadCount} unread notifications` : 'No new notifications'}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              window.location.href = '/notifications'
-              setIsOpen(false)
-            }}
-            className="text-orange-600 hover:text-orange-700 border-orange-200 hover:border-orange-300"
-          >
-            See All Notifications
-            <ExternalLink className="h-3 w-3 ml-1" />
-          </Button>
-        </div>
+        {notifications.length === 0 ? (
+          <div className="p-6 text-center">
+            <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              No notifications yet
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                window.location.href = '/notifications'
+                setIsOpen(false)
+              }}
+              className="text-orange-600 hover:text-orange-700 border-orange-200 hover:border-orange-300"
+            >
+              See All Notifications
+              <ExternalLink className="h-3 w-3 ml-1" />
+            </Button>
+          </div>
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.slice(0, 5).map((notification, index) => (
+              <div
+                key={notification.id}
+                className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700/50 last:border-b-0 ${
+                  !notification.seenAt ? 'bg-orange-50/50 dark:bg-orange-950/20' : ''
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {notification.title}
+                        </p>
+                        {!notification.seenAt && (
+                          <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 pr-8">
+                      {notification.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {notifications.length > 5 && (
+              <>
+                <div className="border-t" />
+                <div className="p-3 text-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      window.location.href = '/notifications'
+                      setIsOpen(false)
+                    }}
+                    className="text-orange-600 hover:text-orange-700"
+                  >
+                    View All {notifications.length} Notifications
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

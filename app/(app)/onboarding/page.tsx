@@ -14,14 +14,11 @@ export default async function OnboardingPage() {
   const metadata = user.user_metadata || {}
   const onboardingSession = metadata.onboarding_session
 
-  if (onboardingSession?.completed) {
+  // Only redirect if explicitly completed, otherwise start fresh
+  if (onboardingSession?.completed === true) {
     redirect('/dashboard')
   }
 
-  // Redirect to current step or start
-  const currentStep = onboardingSession?.currentStep || 0
-  const stepRoutes = ['profile', 'income', 'bills', 'debts', 'goals', 'review']
-  const targetRoute = stepRoutes[currentStep] || 'profile'
-
-  redirect(`/onboarding/${targetRoute}`)
+  // Always start with profile step for now to prevent auto-skipping
+  redirect('/onboarding/profile')
 }
