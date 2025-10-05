@@ -3,30 +3,45 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // EMERGENCY: If this is the clear-cookies page, allow it through immediately
+  if (pathname === '/clear-cookies') {
+    return NextResponse.next()
+  }
+
   // Fix HTTP 431/494 - Handle large headers/cookies
   try {
     // Check header size and clean up if too large
     const headers = request.headers
     const cookieHeader = headers.get('cookie')
     
-    // If cookies are too large, clean them up
-    if (cookieHeader && cookieHeader.length > 4000) {
+    // More aggressive threshold - clear cookies if over 2KB
+    if (cookieHeader && cookieHeader.length > 2000) {
+      console.log(`Large cookie header detected: ${cookieHeader.length} bytes`)
+      
       // Build a response that aggressively clears cookies to reduce header size
       const response = NextResponse.next()
 
       const cookiesToClear = [
         'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
-        'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token'
+        'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
+        'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
+        'app-session', 'supabase', 'supabase-auth'
       ]
 
+      // Clear cookies with multiple variations
       cookiesToClear.forEach((name) => {
         response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0, secure: true })
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0, sameSite: 'strict' })
       })
 
-      // Also instruct client/proxies not to cache
+      // Set aggressive cache headers
       response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
       response.headers.set('Pragma', 'no-cache')
       response.headers.set('Expires', '0')
+      
+      // Add a header to indicate cookies were cleared
+      response.headers.set('X-Cookies-Cleared', 'true')
 
       return response
     }
