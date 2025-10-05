@@ -1,9 +1,14 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createOptimizedClient() {
-  // Provide fallback values for build time
+  // Provide safe fallback values for local development
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+  
+  // Log warning if using placeholders in development
+  if (process.env.NODE_ENV === 'development' && supabaseUrl.includes('placeholder')) {
+    console.warn('🔧 Using placeholder Supabase credentials for local development')
+  }
 
   return createBrowserClient(
     supabaseUrl,

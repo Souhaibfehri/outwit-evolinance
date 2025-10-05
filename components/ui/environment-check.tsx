@@ -15,13 +15,17 @@ export function EnvironmentCheck() {
   })
 
   useEffect(() => {
-    // Check environment variables on client side
+    // Check environment variables on client side with safe defaults
     setEnvStatus({
       supabase: !!(process.env.NEXT_PUBLIC_SUPABASE_URL && 
-                   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'),
-      openai: !!process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-      database: !!process.env.NEXT_PUBLIC_DATABASE_URL,
-      nextauth: !!process.env.NEXT_PUBLIC_NEXTAUTH_SECRET
+                   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co' &&
+                   !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')),
+      openai: !!(process.env.NEXT_PUBLIC_OPENAI_API_KEY && 
+                 !process.env.NEXT_PUBLIC_OPENAI_API_KEY.includes('placeholder')),
+      database: !!(process.env.NEXT_PUBLIC_DATABASE_URL && 
+                   !process.env.NEXT_PUBLIC_DATABASE_URL.includes('placeholder')),
+      nextauth: !!(process.env.NEXT_PUBLIC_NEXTAUTH_SECRET && 
+                   !process.env.NEXT_PUBLIC_NEXTAUTH_SECRET.includes('placeholder'))
     })
   }, [])
 

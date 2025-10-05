@@ -3,6 +3,40 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Fix HTTP 431 - Handle large headers/cookies
+  try {
+    // Check header size and clean up if too large
+    const headers = request.headers
+    const cookieHeader = headers.get('cookie')
+    
+    // If cookies are too large, clean them up
+    if (cookieHeader && cookieHeader.length > 4000) {
+      console.log('Large cookie detected, cleaning up...')
+      
+      // Create response with cleaned cookies
+      const response = NextResponse.next()
+      
+      // Clear problematic cookies
+      const cookiesToClear = [
+        'sb-access-token',
+        'sb-refresh-token', 
+        'supabase.auth.token',
+        'supabase-auth-token',
+        'vercel-auth-session',
+        'next-auth.session-token'
+      ]
+      
+      cookiesToClear.forEach(cookieName => {
+        response.cookies.delete(cookieName)
+      })
+      
+      return response
+    }
+  } catch (error) {
+    console.log('Header processing error:', error)
+    // Continue with request even if header processing fails
+  }
+
   // Always allow these paths without any checks
   const publicPaths = [
     '/', '/login', '/signup', '/auth/callback',
