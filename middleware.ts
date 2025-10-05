@@ -8,47 +8,39 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // PERMANENT FIX: Always clear ALL cookies to prevent 494 errors
-  try {
-    const headers = request.headers
-    const cookieHeader = headers.get('cookie')
-    
-    // If ANY cookies exist, clear them all immediately
-    if (cookieHeader && cookieHeader.length > 0) {
-      console.log(`Clearing ${cookieHeader.length} bytes of cookies to prevent 494 error`)
-      
-      const response = NextResponse.next()
+  // NUCLEAR OPTION: Always return a response that clears ALL cookies
+  const response = NextResponse.next()
 
-      // Clear ALL possible cookies with multiple variations
-      const allCookies = cookieHeader.split(';').map(c => c.trim().split('=')[0]).filter(Boolean)
-      const cookiesToClear = [
-        ...allCookies,
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
-        'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
-        'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
-        'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
-      ]
+  // Clear ALL possible cookies with maximum aggression
+  const cookiesToClear = [
+    'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
+    'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
+    'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
+    'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth',
+    'supabase-auth-token', 'supabase.auth.token', 'sb-access-token', 'sb-refresh-token',
+    'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
+    'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
+    'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
+  ]
 
-      // Clear cookies with multiple variations
-      cookiesToClear.forEach((name) => {
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0, secure: true })
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0, sameSite: 'strict' })
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0, httpOnly: true })
-      })
+  // Clear cookies with multiple variations - NUCLEAR OPTION
+  cookiesToClear.forEach((name) => {
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0, secure: true })
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0, sameSite: 'strict' })
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0, httpOnly: true })
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.vercel.app' })
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.outwit-evolinance.vercel.app' })
+  })
 
-      // Set aggressive cache headers
-      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-      response.headers.set('Pragma', 'no-cache')
-      response.headers.set('Expires', '0')
-      response.headers.set('X-Cookies-Cleared', 'true')
+  // Set aggressive cache headers
+  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+  response.headers.set('X-Cookies-Cleared', 'true')
+  response.headers.set('X-Header-Size-Fix', 'applied')
 
-      return response
-    }
-  } catch (error) {
-    console.log('Header processing error:', error)
-    // Continue with request even if header processing fails
-  }
+  return response
 
   // Always allow these paths without any checks
   const publicPaths = [

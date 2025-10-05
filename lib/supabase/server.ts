@@ -13,14 +13,13 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          // PERMANENT FIX: Return empty array to prevent server-side cookie accumulation
+          // NUCLEAR OPTION: Never return any cookies
           return []
         },
         setAll(cookiesToSet) {
-          // PERMANENT FIX: Block ALL cookie setting on server-side
-          // This forces all authentication to use client-side localStorage only
-          console.log(`BLOCKING ${cookiesToSet.length} server-side cookies - using client-side auth only`)
-          return // Don't set any cookies on server-side
+          // NUCLEAR OPTION: Block ALL cookie setting permanently
+          console.log(`NUCLEAR: Blocking ${cookiesToSet.length} server-side cookies permanently`)
+          return // Never set any cookies
         },
       },
     }
