@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 import { 
   CreateTransactionRequest,
   createSplitTransactions,
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching transactions:', error)
+    logger.error('Error fetching transactions', 'API', error)
     return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 })
   }
 }
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (updateError) {
-      console.error('Failed to save transaction:', updateError)
+      logger.error('Failed to save transaction', 'API', updateError)
       return NextResponse.json({ error: 'Failed to save transaction' }, { status: 500 })
     }
 
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating transaction:', error)
+    logger.error('Error creating transaction', 'API', error)
     return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 })
   }
 }
@@ -167,7 +168,7 @@ export async function PUT(request: NextRequest) {
     })
 
     if (updateError) {
-      console.error('Failed to update transaction:', updateError)
+      logger.error('Failed to update transaction', 'API', updateError)
       return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 })
     }
 
@@ -177,7 +178,7 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error updating transaction:', error)
+    logger.error('Error updating transaction', 'API', error)
     return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 })
   }
 }
@@ -236,7 +237,7 @@ export async function DELETE(request: NextRequest) {
     })
 
     if (updateError) {
-      console.error('Failed to delete transaction:', updateError)
+      logger.error('Failed to delete transaction', 'API', updateError)
       return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 })
     }
 
@@ -247,7 +248,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error deleting transaction:', error)
+    logger.error('Error deleting transaction', 'API', error)
     return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 })
   }
 }

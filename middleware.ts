@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow emergency pages through immediately
-  if (pathname === '/clear-cookies' || pathname === '/production-fix' || pathname === '/fix-now' || pathname === '/emergency-clear' || pathname === '/emergency-dashboard') {
+  if (pathname === '/clear-cookies' || pathname === '/fix-now' || pathname === '/emergency-clear' || pathname === '/emergency-dashboard') {
     return NextResponse.next()
   }
 
@@ -20,7 +21,7 @@ export async function middleware(request: NextRequest) {
     
     // If total headers exceed 28KB (leaving 4KB buffer), clear ALL cookies
     if (totalHeaderSize > 28000) {
-      console.log(`CRITICAL: Total headers ${totalHeaderSize} bytes - clearing ALL cookies to prevent 494`)
+      logger.warn(`Total headers ${totalHeaderSize} bytes - clearing ALL cookies to prevent 494`, 'MIDDLEWARE')
       
       const response = NextResponse.next()
 
@@ -47,7 +48,7 @@ export async function middleware(request: NextRequest) {
     
     // If cookies alone are large (>6KB), clear the largest ones
     if (cookieHeader && cookieHeader.length > 6000) {
-      console.log(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`)
+      logger.warn(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`, 'MIDDLEWARE')
       
       const response = NextResponse.next()
 
@@ -63,7 +64,7 @@ export async function middleware(request: NextRequest) {
       return response
     }
   } catch (error) {
-    console.log('Header processing error:', error)
+    logger.error('Header processing error', 'MIDDLEWARE', error)
     // Continue with request even if header processing fails
   }
 

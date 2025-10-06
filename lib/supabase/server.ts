@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/utils/logger'
 
 export async function createClient() {
   const cookieStore = await cookies()
@@ -16,7 +17,7 @@ export async function createClient() {
         cookiesToSet.forEach(({ name, value, options }) => {
           // DEFINITIVE FIX: Block ALL large cookies to prevent 494 errors
           if (value && value.length > 2000) {
-            console.warn(`BLOCKING large cookie: ${name} (${value.length} bytes) - exceeds 2KB limit to prevent 494`)
+            logger.warn(`Blocking large cookie: ${name} (${value.length} bytes) - exceeds 2KB limit`, 'SUPABASE')
             return
           }
           
