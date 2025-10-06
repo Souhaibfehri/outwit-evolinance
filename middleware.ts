@@ -3,51 +3,24 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // EMERGENCY: If this is the clear-cookies page, allow it through immediately
-  if (pathname === '/clear-cookies') {
+  // Allow emergency pages through immediately
+  if (pathname === '/clear-cookies' || pathname === '/production-fix' || pathname === '/fix-now') {
     return NextResponse.next()
   }
 
-  // PROPER 494 FIX: Monitor total header size and manage cookies
+  // SIMPLE 494 FIX: Only clear cookies if they're very large
   try {
-    const headers = request.headers
-    const cookieHeader = headers.get('cookie')
+    const cookieHeader = request.headers.get('cookie')
     
-    // Calculate total header size
-    let totalHeaderSize = 0
-    for (const [name, value] of headers.entries()) {
-      totalHeaderSize += name.length + value.length
-    }
-    
-    // If total headers exceed 24KB (leaving 8KB buffer), clear largest cookies
-    if (totalHeaderSize > 24000) {
-      console.log(`Large headers detected: ${totalHeaderSize} bytes - clearing largest cookies`)
+    // Only intervene if cookies are extremely large (>10KB)
+    if (cookieHeader && cookieHeader.length > 10000) {
+      console.log(`Very large cookie header detected: ${cookieHeader.length} bytes - clearing auth cookies`)
       
       const response = NextResponse.next()
 
-      // Clear the largest cookies that are most likely to cause issues
+      // Clear only the largest auth cookies
       const cookiesToClear = [
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token'
-      ]
-
-      cookiesToClear.forEach((name) => {
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.vercel.app' })
-      })
-
-      response.headers.set('X-Headers-Cleared', 'true')
-      return response
-    }
-    
-    // If just cookies are large (>8KB), clear only the biggest ones
-    if (cookieHeader && cookieHeader.length > 8000) {
-      console.log(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`)
-      
-      const response = NextResponse.next()
-
-      // Clear only the largest cookies
-      const cookiesToClear = [
-        'sb-access-token', 'sb-refresh-token'
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token'
       ]
 
       cookiesToClear.forEach((name) => {
@@ -58,6 +31,7 @@ export async function middleware(request: NextRequest) {
     }
   } catch (error) {
     console.log('Header processing error:', error)
+    // Continue with request even if header processing fails
   }
 
   // Always allow these paths without any checks
