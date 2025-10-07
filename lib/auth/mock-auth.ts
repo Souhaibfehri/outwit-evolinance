@@ -55,50 +55,50 @@ export class MockAuthService {
   }
 
   async getUser(): Promise<{ data: { user: MockUser | null }, error: any }> {
-    return {
+    return Promise.resolve({
       data: { user: this.session?.user || null },
       error: null
-    }
+    })
   }
 
   async signInWithPassword(credentials: { email: string; password: string }) {
     // Always return success for demo purposes
     this.session = MOCK_SESSION
-    return {
+    return Promise.resolve({
       data: { user: MOCK_USER, session: MOCK_SESSION },
       error: null
-    }
+    })
   }
 
   async signUp(credentials: { email: string; password: string }) {
     // Always return success for demo purposes
     this.session = MOCK_SESSION
-    return {
+    return Promise.resolve({
       data: { user: MOCK_USER, session: MOCK_SESSION },
       error: null
-    }
+    })
   }
 
   async signOut() {
     this.session = null
-    return { error: null }
+    return Promise.resolve({ error: null })
   }
 
   async updateUser(updates: any) {
     if (this.session) {
       this.session.user = { ...this.session.user, ...updates }
     }
-    return {
+    return Promise.resolve({
       data: { user: this.session?.user || null },
       error: null
-    }
+    })
   }
 
   getSession() {
-    return {
+    return Promise.resolve({
       data: { session: this.session },
       error: null
-    }
+    })
   }
 
   onAuthStateChange(callback: (event: string, session: any) => void) {
