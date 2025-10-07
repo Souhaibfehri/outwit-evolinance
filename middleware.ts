@@ -1,72 +1,30 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { logger } from '@/lib/utils/logger'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow emergency pages through immediately
-  if (pathname === '/clear-cookies' || pathname === '/fix-now' || pathname === '/emergency-clear' || pathname === '/emergency-dashboard') {
+  if (pathname === '/clear-cookies' || pathname === '/fix-now' || pathname === '/emergency-clear' || pathname === '/emergency-dashboard' || pathname === '/root-cause-fix') {
     return NextResponse.next()
   }
 
-  // DEFINITIVE 494 FIX: Always check and clear large cookies
-  try {
-    const cookieHeader = request.headers.get('cookie')
-    
-    // Calculate total header size
-    let totalHeaderSize = 0
-    for (const [name, value] of request.headers.entries()) {
-      totalHeaderSize += name.length + value.length
-    }
-    
-    // If total headers exceed 28KB (leaving 4KB buffer), clear ALL cookies
-    if (totalHeaderSize > 28000) {
-      logger.warn(`Total headers ${totalHeaderSize} bytes - clearing ALL cookies to prevent 494`, 'MIDDLEWARE')
-      
-      const response = NextResponse.next()
+  // EXTREME SIMPLIFICATION: Just clear all cookies on every request
+  const response = NextResponse.next()
 
-      // Clear ALL cookies that could cause issues
-      const allCookies = cookieHeader ? cookieHeader.split(';').map(c => c.trim().split('=')[0]).filter(Boolean) : []
-      const cookiesToClear = [
-        ...allCookies,
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
-        'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
-        'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
-        'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
-      ]
+  // Clear ALL possible cookies
+  const cookiesToClear = [
+    'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
+    'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
+    'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
+    'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
+  ]
 
-      // Clear cookies with multiple variations
-      cookiesToClear.forEach((name) => {
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.vercel.app' })
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0, domain: '.outwit-evolinance.vercel.app' })
-      })
+  cookiesToClear.forEach((name) => {
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
+  })
 
-      response.headers.set('X-Emergency-Clear', 'true')
-      return response
-    }
-    
-    // If cookies alone are large (>6KB), clear the largest ones
-    if (cookieHeader && cookieHeader.length > 6000) {
-      logger.warn(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`, 'MIDDLEWARE')
-      
-      const response = NextResponse.next()
-
-      // Clear the largest cookies
-      const cookiesToClear = [
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token'
-      ]
-
-      cookiesToClear.forEach((name) => {
-        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
-      })
-
-      return response
-    }
-  } catch (error) {
-    logger.error('Header processing error', 'MIDDLEWARE', error)
-    // Continue with request even if header processing fails
-  }
+  response.headers.set('X-Mock-Mode', 'true')
+  return response
 
   // Always allow these paths without any checks
   const publicPaths = [
