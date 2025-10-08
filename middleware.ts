@@ -8,23 +8,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // EXTREME SIMPLIFICATION: Just clear all cookies on every request
-  const response = NextResponse.next()
+  // Conservative 494 fix: Only clear cookies if they're very large
+  try {
+    const cookieHeader = request.headers.get('cookie')
+    
+    // If cookies are extremely large (>10KB), clear the largest ones
+    if (cookieHeader && cookieHeader.length > 10000) {
+      console.warn(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`)
+      
+      const response = NextResponse.next()
 
-  // Clear ALL possible cookies
-  const cookiesToClear = [
-    'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
-    'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
-    'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token',
-    'app-session', 'supabase', 'supabase-auth', 'sb-', 'vercel', 'next-auth'
-  ]
+      // Clear only the largest cookies
+      const cookiesToClear = [
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token'
+      ]
 
-  cookiesToClear.forEach((name) => {
-    response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
-  })
+      cookiesToClear.forEach((name) => {
+        response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
+      })
 
-  response.headers.set('X-Mock-Mode', 'true')
-  return response
+      return response
+    }
+  } catch (error) {
+    console.log('Header processing error:', error)
+    // Continue with request even if header processing fails
+  }
 
   // Always allow these paths without any checks
   const publicPaths = [
