@@ -8,25 +8,28 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Conservative 494 fix: Only clear cookies if they're very large
+  // EMERGENCY 494 fix: Clear cookies if they're large
   try {
     const cookieHeader = request.headers.get('cookie')
     
-    // If cookies are extremely large (>10KB), clear the largest ones
-    if (cookieHeader && cookieHeader.length > 10000) {
-      console.warn(`Large cookie header detected: ${cookieHeader.length} bytes - clearing largest cookies`)
+    // If cookies are large (>5KB), clear ALL Supabase cookies
+    if (cookieHeader && cookieHeader.length > 5000) {
+      console.warn(`EMERGENCY: Large cookie header detected: ${cookieHeader.length} bytes - clearing ALL cookies`)
       
       const response = NextResponse.next()
 
-      // Clear only the largest cookies
+      // Clear ALL possible cookies
       const cookiesToClear = [
-        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token'
+        'sb-access-token', 'sb-refresh-token', 'supabase.auth.token', 'supabase-auth-token',
+        'vercel-auth-session', 'next-auth.session-token', 'session', 'auth', 'token',
+        'jwt', 'cookie', 'auth-token', 'access-token', 'refresh-token', 'user-token'
       ]
 
       cookiesToClear.forEach((name) => {
         response.cookies.set({ name, value: '', path: '/', maxAge: 0 })
       })
 
+      response.headers.set('X-Cookies-Cleared', 'emergency-fix')
       return response
     }
   } catch (error) {

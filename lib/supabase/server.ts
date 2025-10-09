@@ -14,16 +14,16 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          // PERMANENT FIX: Block oversized cookies that cause 494 errors
-          if (value && value.length > 3000) {
-            console.warn(`PERMANENT FIX: Blocking oversized cookie: ${name} (${value.length} bytes)`)
+          // EMERGENCY FIX: Block ALL large cookies to prevent 494 errors
+          if (value && value.length > 2000) {
+            console.warn(`EMERGENCY FIX: Blocking large cookie: ${name} (${value.length} bytes)`)
             return
           }
           
-          // Set cookies with conservative limits to prevent 494 errors
+          // Set cookies with very conservative limits
           const safeOptions = {
             ...options,
-            maxAge: Math.min(options?.maxAge || 1800, 1800), // Max 30 minutes
+            maxAge: Math.min(options?.maxAge || 900, 900), // Max 15 minutes
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax' as const,
             httpOnly: true,
